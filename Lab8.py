@@ -1,5 +1,5 @@
 import numpy as np
-import random
+import secrets
 
 
 def create_network(nodes, target_conns):
@@ -7,12 +7,12 @@ def create_network(nodes, target_conns):
     loads = np.random.uniform(0.1, 1.0, nodes)
 
     for i in range(1, nodes):
-        j = random.randint(0, i - 1)
+        j = secrets.SystemRandom().randint(0, i - 1)
         connections[i][j] = connections[j][i] = 1
 
     while np.sum(connections) / 2 < target_conns * nodes:
-        i = random.randint(0, nodes - 1)
-        j = random.randint(0, nodes - 1)
+        i = secrets.SystemRandom().randint(0, nodes - 1)
+        j = secrets.SystemRandom().randint(0, nodes - 1)
         if i != j and connections[i][j] == 0:
             connections[i][j] = connections[j][i] = 1
 
@@ -43,7 +43,7 @@ def calc_fitness(network, target_conns):
 
 
 def tournament_select(population, fitnesses):
-    idx = random.sample(range(len(population)), 3)
+    idx = secrets.SystemRandom().sample(range(len(population)), 3)
     return population[min(idx, key=lambda x: fitnesses[x])]
 
 
@@ -56,10 +56,10 @@ def make_child(parent1, parent2):
 
     for i in range(nodes):
         for j in range(i + 1, nodes):
-            val = parent1['connections'][i][j] if random.random() < 0.5 else parent2['connections'][i][j]
+            val = parent1['connections'][i][j] if secrets.SystemRandom().random() < 0.5 else parent2['connections'][i][j]
             child['connections'][i][j] = child['connections'][j][i] = val
 
-        mix = random.random()
+        mix = secrets.SystemRandom().random()
         child['loads'][i] = mix * parent1['loads'][i] + (1 - mix) * parent2['loads'][i]
 
     return child
@@ -70,7 +70,7 @@ def mutate_network(network, mut_rate, target_conns):
     conn_counts = np.sum(network['connections'], axis=1)
 
     for i in range(nodes):
-        if random.random() < mut_rate:
+        if secrets.SystemRandom().random() < mut_rate:
             max_node = np.argmax(conn_counts)
             min_node = np.argmin(conn_counts)
 
@@ -78,7 +78,7 @@ def mutate_network(network, mut_rate, target_conns):
                 possible = [j for j in range(nodes)
                             if j != min_node and network['connections'][min_node][j] == 0]
                 if possible:
-                    j = random.choice(possible)
+                    j = secrets.choice(possible)
                     network['connections'][min_node][j] = network['connections'][j][min_node] = 1
                     conn_counts[min_node] += 1
                     conn_counts[j] += 1
@@ -87,13 +87,13 @@ def mutate_network(network, mut_rate, target_conns):
                 connected = [j for j in range(nodes)
                              if network['connections'][max_node][j] == 1]
                 if len(connected) > 1:
-                    j = random.choice(connected)
+                    j = secrets.choice(connected)
                     network['connections'][max_node][j] = network['connections'][j][max_node] = 0
                     conn_counts[max_node] -= 1
                     conn_counts[j] -= 1
 
-        if random.random() < mut_rate:
-            network['loads'][i] *= random.uniform(0.8, 1.2)
+        if secrets.SystemRandom().random() < mut_rate:
+            network['loads'][i] *= secrets.SystemRandom().uniform(0.8, 1.2)
             network['loads'][i] = max(0.1, min(1.0, network['loads'][i]))
 
 
